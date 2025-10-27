@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Assignment Submission Tracker</title>
+<style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #444; padding: 8px; text-align: center; }
+    .submitted { background-color: #b6ffb6; } /* green */
+    .not-submitted { background-color: #ffb6b6; } /* red */
+    #adminPanel { display: none; margin-top: 15px; }
+</style>
+</head>
+<body>
+
+<h2>Assignment Submission Tracker</h2>
+
+<!-- Login -->
+<div id="loginBox">
+    <p><b>Teacher Login</b></p>
+    <input type="password" id="passwordInput" placeholder="Enter password">
+    <button onclick="login()">Login</button>
+    <p id="loginMessage" style="color:red;"></p>
+</div>
+
+<!-- Admin panel visible only after login -->
+<div id="adminPanel">
+    <button onclick="toggleEdit()">Enable/Disable Edit Mode</button>
+    <input type="file" accept=".csv" onchange="importCSV(event)">
+</div>
+
+<!-- Table -->
+<table id="assignmentTable">
+    <tr>
+        <th>Roll No.</th>
+        <th>Student Name</th>
+        <th>Assignment 1</th>
+        <th>Assignment 2</th>
+    </tr>
+
+    <tr>
+        <td>21AIML001</td>
+        <td>Rahul Sharma</td>
+        <td class="not-submitted"><a href="#" onclick="addComment(this)">Not Submitted</a></td>
+        <td class="submitted">Submitted</td>
+    </tr>
+
+    <tr>
+        <td>21AIML002</td>
+        <td>Priya Singh</td>
+        <td class="submitted">Submitted</td>
+        <td class="not-submitted"><a href="#" onclick="addComment(this)">Not Submitted</a></td>
+    </tr>
+</table>
+
+<script>
+// Teacher password login
+function login() {
+    let pwd = document.getElementById("passwordInput").value;
+    if (pwd === "tirtha@mrecw") {
+        document.getElementById("adminPanel").style.display = "block";
+        document.getElementById("loginBox").style.display = "none";
+        editingEnabled = false;
+    } else {
+        document.getElementById("loginMessage").innerText = "Incorrect Password!";
+    }
+}
+
+let editingEnabled = false;
+
+function toggleEdit() {
+    editingEnabled = !editingEnabled;
+    alert(editingEnabled ? "Edit Mode ON - You can now change submission status" : "Edit Mode OFF");
+}
+
+// Change submission status (only teacher)
+function addComment(cell) {
+    if (!editingEnabled) { 
+        alert("Teacher login required to change status!");
+        return;
+    }
+    let newStatus = prompt("Enter 'submitted' or date of expected submission:");
+    if (newStatus) {
+        if (newStatus.toLowerCase() === "submitted") {
+            cell.parentNode.className = "submitted";
+            cell.outerHTML = "<td class='submitted'>Submitted</td>";
+        } else {
+            cell.parentNode.className = "not-submitted";
+            cell.innerHTML = `<a href="#" onclick="addComment(this)">Not Submitted (Plan: ${newStatus})</a>`;
+        }
+    }
+}
+
+// CSV Import
+function importCSV(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const lines = e.target.result.split("\n").map(line => line.split(","));
+        let table = document.getElementById("assignmentTable");
+
+        table.innerHTML = ""; // clear
+
+        lines.forEach((row, index) => {
+            let tr = document.createElement("tr");
+            row.forEach((cell, i) => {
+                let td = document.createElement(index === 0 ? "th" : "td");
+                td.textContent = cell.trim();
+                tr.appendChild(td);
+            });
+            table.appendChild(tr);
+        });
+    }
+    reader.readAsText(file);
+}
+</script>
+
+</body>
+</html>
